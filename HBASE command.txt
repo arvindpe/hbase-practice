@@ -1,0 +1,286 @@
+HBase Shell Commands
+HBase Shell Commands can be categorized into below types.
+
+A.HBase Shell General Commands
+B.Data Definition Commands
+C.Data Manipulation Commands
+D.Other HBase Shell Commands
+-----------------------------------------------------------------------------------------------------------
+[A] General Commands
+1) status             – shows the cluster status
+2) table_help      – help on Table reference commands, scan, put, get, disable, drop etc.
+3) version          – displays HBase version
+4) whoami         – shows the current HBase user
+---------------------------------------------------------------------
+[B] Data Definition Commands
+
+1) create --(create table employee with family personal and profssional):
+create 'employee','personal','professional'
+OR
+create 'employee', {NAME => 'personal'}, {NAME => 'professional'}
+OR
+employee=create 'employee','personal','professional'
+
+2)  describe ---it will describe the table 
+
+Ex:---
+describe 'employee'
+Table employee is ENABLED                                                                                                                                    
+employee                                                                                                                                                     
+COLUMN FAMILIES DESCRIPTION                                                                                                                                  
+{NAME => 'personal', DATA_BLOCK_ENCODING => 'NONE', BLOOMFILTER =>
+ 'ROW', REPLICATION_SCOPE => '0', VERSIONS => '1', COMPRESSION =>
+ 'NONE', MIN_VERSIONS => '0', TTL => 'FOREVER', KEEP_DELETED_CELLS => 
+'FALSE', BLOCKSIZE => '65536', IN_MEMORY => 'false', BLOCKCACHE => 'true'}                                       
+{NAME => 'professional', DATA_BLOCK_ENCODING => 'NONE', BLOOMFILTER =>
+ 'ROW', REPLICATION_SCOPE => '0', VERSIONS => '1', COMPRESSION => 'NONE', 
+MIN_VERSIONS => '0', TTL => 'FOREVER', KEEP_DELETED_CELLS => 'FALSE',
+ BLOCKSIZE => '65536', IN_MEMORY => 'false', BLOCKCACHE => 'true'}                                   
+
+3)  disable
+disable an existing HBase table.Disabled tables will not be deleted from HBase but they are not
+ available for regular access. This table is excluded from the list command and we can not run 
+any other command except either enable or drop commands on disabled tables. Disabling is 
+similar to deleting the tables temporarily.
+Ex::----
+disable 'employee'
+
+4) disable_all
+Disable all of tables matching the given regex:
+Ex:--
+disable_all 'emp.*'
+disable_all 'nii:t.*'
+disable_all 'ra.*'
+
+5) drop_all
+Drop all of the tables matching the given regex:
+Ex:--
+drop_all 'a.*'
+
+6) enable
+Used to enable a table which might be currently disabled.
+Ex:--
+enable 'employee'
+
+7) enable_all
+Enable all of the tables matching the given regex:
+Ex:--
+enable_all 'em.*'
+
+8) exists
+To check the existence of an HBase Table
+Ex:--
+exists 'employee'
+
+9)get_table
+Gets the given table name and return it as an actual object to be manipulated by the user.
+Ex:--
+t1=get_table 'employee'
+On reference to table we can perform all actions of a table like shown below.
+Ex:--
+t1.put '1', 'personal:id', '101'
+t1.put '1', 'personal:name', 'amber'
+t1.put '1', 'personal:address', 'latur'
+t1.put '1', 'professional:post', 'analyst'
+
+10) is_disabled
+To know whether an HBase table is disabled or not
+Ex:---
+is_disabled 'employee'
+
+11)  is_enabled
+To know whether an HBase table is enabled or not.
+Ex:--
+is_enabled 'employee'
+
+11) list
+List all tables in hbase. Optional regular expression parameter could be used to
+ filter the output. Examples:
+Ex:--
+list
+
+12)show_filters
+Show all the filters in hbase. Example:
+Ex:---
+show_filters
+
+13)  alter
+add/modify/delete column families, as well as change table configuration
+i] Add/Change column family:
+to change or add the ‘account’ column family in table ‘employee’ from current value to keep a maximum of 5 cell VERSIONS, do:
+
+Ex:--
+alter 'employee', NAME => 'account', VERSIONS => 5
+
+
+ii]Delete column family
+To delete the ‘account’ column family in table ‘employee’, use one of:
+Ex:--
+hbase> alter 'employee', NAME => 'account', METHOD => 'delete'
+hbase> alter 'employee', 'delete' => 'account'
+
+14) alter_async
+Same as alter command but does not wait for all regions to receive the schema changes.
+Ex:--
+alter_status 'employee'
+
+-------------------------------------------------------------------------------------------------------------------
+
+[C] Data Manipulation Commands
+
+1) append
+Appends a cell ‘value’ at specified table/row/column coordinates.
+Ex:--
+append 'employee', '1', 'personal:address', 'latur', ATTRIBUTES=>{'tal'=>'udgir'}
+append 'employee', '1', 'personal:address', ',udgir'
+
+2)count
+Count the number of rows in a table. Return value is the number of rows.
+ This operation may take a LONG time 
+Ex:---
+count 'employee'
+
+
+3)delete
+Put a delete cell value at specified table/row/column and optionally timestamp coordinates
+Ex:---
+
+delete 'employee','3','professional:id' 
+
+4) deleteall
+Delete all cells in a given row; pass a table name, row, and optionally a column and timestamp. Examples:
+Ex:--
+deleteall 'employee', '3'
+
+
+5)get
+Get row or cell contents; 
+pass table name, row, and optionally a dictionary of column(s), 
+timestamp, timerange and versions
+Ex:---
+get 'employee','1' 
+get 'employee','1', {COLUMN =>'personal:id'}
+get 'employee','1', {COLUMN =>['personal:id','personal:name','professional:post']}
+
+
+
+6)get_counter
+Return a counter cell value at specified table/row/column coordinates.
+Ex:---
+get_counter 'employee', '3', 'personal:id'
+
+
+
+7)incr
+Increments a cell ‘value’ at specified table/row/column coordinates
+Ex:--
+To put a cell value into table ‘employee’ at row ‘3’ under column ‘id’ marked witth 10:
+incr 'employee', '3', 'personal:id', 10
+
+
+8)put
+Put a cell ‘value’ at specified table/row/column and optionally timestamp coordinates.
+Ex:---
+put 'employee', '4', 'personal:id', '104'
+
+
+9)scan
+Scan a table;
+Scanner specifications may include one or more of:
+TIMERANGE, FILTER, LIMIT, STARTROW, STOPROW, TIMESTAMP, MAXLENGTH,
+Ex:---
+scan 'employee'
+scan 'employee', {COLUMNS => ['personal:name', 'professional:post'], LIMIT => 2}
+
+
+10)truncate
+Disables, drops and recreates the specified table. 
+After truncate of an HBase table, schema will be present but not the records.
+Ex_---
+truncate 'table1'
+
+11)truncate_preserve
+Disables, drops and recreates the specified table while still maintaing the previous region boundaries.
+Ex:--
+truncate_preserve 'table2'
+------------------------------------------------------------------------------------------------------------------------------
+**********************************Security Commands:*********************************
+1) grant
+Grant users specific rights.
+
+permissions is either zero or more letters from the set “RWXCA”.
+READ(‘R’), WRITE(‘W’), EXEC(‘X’), CREATE(‘C’), ADMIN(‘A’)
+Ex:----
+hbase> grant 'bobsmith', 'RWXCA'
+hbase> grant 'bobsmith', 'RWXCA', '@ns1'
+hbase> grant 'bobsmith', 'RW', 't1', 'f1', 'col1'
+hbase> grant 'bobsmith', 'RW', 'ns1:t1', 'f1', 'col1'
+
+2)revoke
+Revoke a user’s access rights.
+revoke <user> [<table> [<column family> [<column qualifier>]]
+Ex:--
+hbase> revoke 'bobsmith'
+hbase> revoke 'bobsmith', 't1', 'f1', 'col1'
+hbase> revoke 'bobsmith', 'ns1:t1', 'f1', 'col1'
+
+ 
+3)user_permission
+Show all permissions for the particular user.
+
+Syntax : user_permission <table>
+Ex:--
+user_permission 'employee'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
